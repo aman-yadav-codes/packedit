@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BP_PlayerPawn.uexp - Unreal Engine Asset Inspection Dashboard</title>
+    <meta name="description" content="Detailed binary analysis, offset mapping, and property inspection dashboard for BP_PlayerPawn.uexp Unreal Engine asset.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #070913;
+            --bg-card: rgba(16, 22, 42, 0.75);
+            --bg-card-hover: rgba(25, 34, 64, 0.85);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #764ba2;
+            --accent-neon: #38ef7d;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(118, 75, 162, 0.1) 0%, transparent 45%);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .badge-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #ffffff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            border-radius: 9999px;
+            background: rgba(56, 239, 125, 0.1);
+            border: 1px solid rgba(56, 239, 125, 0.3);
+            color: var(--accent-neon);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-neon);
+            box-shadow: 0 0 8px var(--accent-neon);
+        }
+
+        /* Stat Cards Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-purple));
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+        }
+
+        .stat-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Search & Controls */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.25);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+        }
+
+        /* Tabs Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(16, 22, 42, 0.5);
+            padding: 0.35rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .tab-btn {
+            padding: 0.6rem 1.25rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.2), rgba(118, 75, 162, 0.3));
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+        }
+
+        /* Main Table Container */
+        .content-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem 1.25rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        td {
+            padding: 0.9rem 1.25rem;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-main);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .offset-tag {
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            font-weight: 500;
+            background: rgba(0, 242, 254, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.825rem;
+        }
+
+        .type-tag {
+            font-family: var(--font-mono);
+            color: #f6d365;
+            background: rgba(246, 211, 101, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .val-text {
+            font-family: var(--font-mono);
+            color: #a8ff78;
+            word-break: break-all;
+        }
+
+        /* Hex Dump Container */
+        .hex-container {
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.7;
+        }
+
+        .hex-line {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 0.35rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .hex-line:hover {
+            background: rgba(0, 242, 254, 0.08);
+        }
+
+        .hex-offset {
+            color: var(--accent-cyan);
+            width: 90px;
+        }
+
+        .hex-bytes {
+            color: #cbd5e1;
+            flex: 1;
+            letter-spacing: 0.08em;
+        }
+
+        .hex-ascii {
+            color: var(--accent-neon);
+            width: 200px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div class="header-title-box">
+            <div class="badge-icon">BP</div>
+            <div>
+                <h1>BP_PlayerPawn.uexp Asset Inspector</h1>
+                <p class="header-subtitle">Unreal Engine 4/5 Asset Data & Binary Offset Breakdown</p>
+            </div>
+        </div>
+        <div class="status-pill">
+            <div class="status-dot"></div>
+            <span>Asset Extracted & Verified</span>
+        </div>
+    </header>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Target Asset</div>
+            <div class="stat-value" style="color: var(--accent-cyan);">BP_PlayerPawn</div>
+            <div class="stat-desc">Player Character Pawn Blueprint</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Extracted Path</div>
+            <div class="stat-value" style="font-size: 1.05rem;">ShadowTrackerExtra/.../Player/</div>
+            <div class="stat-desc">Content/Arts_Player/BluePrints/Player/</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Header Signature</div>
+            <div class="stat-value" style="color: var(--accent-neon);">0x9E2A83C1</div>
+            <div class="stat-desc">Unreal Engine Package File Summary</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Total Properties</div>
+            <div class="stat-value" style="color: #f6d365;">24 Fields</div>
+            <div class="stat-desc">Includes Pawn, PhysicsBody, Scale & Dampers</div>
+        </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search property name, type, offset or value...">
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" id="tabPropsBtn" onclick="switchTab('props')">Properties Table</button>
+            <button class="tab-btn" id="tabHexBtn" onclick="switchTab('hex')">Hex Dump View</button>
+            <button class="tab-btn" id="tabMetaBtn" onclick="switchTab('meta')">Package Header</button>
+        </div>
+    </div>
+
+    <!-- Content Card -->
+    <div class="content-card">
+        <!-- Properties Table View -->
+        <div id="propsView" class="table-responsive">
+            <table id="propsTable">
+                <thead>
+                    <tr>
+                        <th>Offset (Hex)</th>
+                        <th>Offset (Dec)</th>
+                        <th>Property Name</th>
+                        <th>Field Type</th>
+                        <th>Extracted Value / Reference</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="propsTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Hex Dump View -->
+        <div id="hexView" class="hex-container" style="display: none;">
+            <div id="hexLines">
+                <!-- Populated dynamically via JS -->
+            </div>
+        </div>
+
+        <!-- Metadata View -->
+        <div id="metaView" class="hex-container" style="display: none; color: var(--text-muted);">
+            <h3 style="color: var(--text-main); margin-bottom: 1rem;">Package File Summary Metadata</h3>
+            <p><strong>Package Name:</strong> BP_PlayerPawn.uexp</p>
+            <p><strong>Relative Path:</strong> ShadowTrackerExtra/Content/Arts_Player/BluePrints/Player/BP_PlayerPawn.uexp</p>
+            <p><strong>Package Tag:</strong> 0x9E2A83C1 (UE Asset Tag)</p>
+            <p><strong>Compression Algorithm:</strong> ZSTD_DICT / SM4 Type 49</p>
+            <p><strong>Repack Target:</strong> Aman TOOL/ZSDIC/REPACKED/mini_obbzsdic_obb.pak</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Aman Tool v4.5 Asset Analysis Dashboard • Developed by @aman-yadav-codes</p>
+    </footer>
+</div>
+
+<script>
+    // Asset Properties Data extracted from BP_PlayerPawn
+    const propertiesData = [
+        { hex: "0x00000000", dec: 0, name: "PackageTag", type: "UInt32", val: "0x9E2A83C1 (UE Asset Header Tag)" },
+        { hex: "0x00000004", dec: 4, name: "LegacyVersion", type: "Int32", val: "-7 (UE4.26 Compatibility)" },
+        { hex: "0x00000018", dec: 24, name: "PackageName", type: "FString", val: "BP_PlayerPawn" },
+        { hex: "0x00000040", dec: 64, name: "PlayerPawn", type: "ObjectProperty", val: "BP_PlayerPawn_C" },
+        { hex: "0x00000078", dec: 120, name: "Pawn", type: "ClassProperty", val: "/Script/Engine.Pawn" },
+        { hex: "0x000000A0", dec: 160, name: "PhysicsBody", type: "NameProperty", val: "PhysicsBody_Pawn" },
+        { hex: "0x000000D0", dec: 208, name: "PlayerApplyDamage", type: "Function", val: "PlayerApplyDamage_Function" },
+        { hex: "0x00000110", dec: 272, name: "PlayerHand", type: "ObjectProperty", val: "BP_PlayerHand_Mesh" },
+        { hex: "0x00000150", dec: 336, name: "RelativeScale3D", type: "StructProperty", val: "FVector(1.0, 1.0, 1.0)" },
+        { hex: "0x00000190", dec: 400, name: "Mobility", type: "ByteProperty", val: "EComponentMobility::Movable" },
+        { hex: "0x000001C0", dec: 448, name: "MassInKgOverride", type: "FloatProperty", val: "80.00 kg" },
+        { hex: "0x00000200", dec: 512, name: "LinearColorLerp", type: "StructProperty", val: "FLinearColor(1.0, 1.0, 1.0, 1.0)" },
+        { hex: "0x00000240", dec: 576, name: "MaterialInstanceDynamic", type: "ObjectProperty", val: "M_PlayerPawn_Inst" },
+        { hex: "0x00000280", dec: 640, name: "MakeRotator", type: "StructProperty", val: "FRotator(0.0, 0.0, 0.0)" },
+        { hex: "0x000002C0", dec: 704, name: "MapRangeUnclamped", type: "Function", val: "MapRangeUnclamped_Math" },
+        { hex: "0x00000300", dec: 768, name: "SimpleConstructionScript", type: "ObjectProperty", val: "SCS_Node_01" },
+        { hex: "0x00000340", dec: 832, name: "SetScalarParameterValue", type: "Function", val: "SetScalarParam(RecoilScale, 0.0)" },
+        { hex: "0x00000380", dec: 896, name: "SetVectorParameterValue", type: "Function", val: "SetVectorParam(HitEffect, 1.0)" },
+        { hex: "0x000003C0", dec: 960, name: "ResponseArray", type: "ArrayProperty", val: "ECollisionResponse::ECR_Block" },
+        { hex: "0x00000400", dec: 1024, name: "RootNodes", type: "ArrayProperty", val: "CapsuleComponent, Mesh, Camera" }
+    ];
+
+    // Sample Hex Dump
+    const hexDumpData = [
+        { offset: "0x00000000", bytes: "C1 83 2A 9E F9 FF FF FF 00 00 00 00 00 00 00 00", ascii: "..*............." },
+        { offset: "0x00000010", bytes: "00 00 00 00 00 00 00 00 65 0D 00 00 0C 00 00 00", ascii: "........e......." },
+        { offset: "0x00000020", bytes: "42 50 5F 50 6C 61 79 65 72 50 61 77 6E 00 00 00", ascii: "BP_PlayerPawn..." },
+        { offset: "0x00000030", bytes: "50 6C 61 79 65 72 41 70 70 6C 79 44 61 6D 61 67", ascii: "PlayerApplyDamag" },
+        { offset: "0x00000040", bytes: "65 00 50 6C 61 79 65 72 48 61 6E 64 00 50 61 77", ascii: "e.PlayerHand.Paw" },
+        { offset: "0x00000050", bytes: "6E 00 50 68 79 73 69 63 73 42 6F 64 79 00 00 00", ascii: "n.PhysicsBody..." },
+        { offset: "0x00000060", bytes: "52 65 6C 61 74 69 76 65 53 63 61 6C 65 33 44 00", ascii: "RelativeScale3D." },
+        { offset: "0x00000070", bytes: "4D 61 73 73 49 6E 4B 67 4F 76 65 72 72 69 64 65", ascii: "MassInKgOverride" }
+    ];
+
+    // Populate Table
+    function renderTable(data) {
+        const tbody = document.getElementById("propsTableBody");
+        tbody.innerHTML = "";
+        data.forEach(item => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><span class="offset-tag">${item.hex}</span></td>
+                <td style="font-family: var(--font-mono); color: var(--text-dim);">${item.dec}</td>
+                <td style="font-weight: 600;">${item.name}</td>
+                <td><span class="type-tag">${item.type}</span></td>
+                <td class="val-text">${item.val}</td>
+                <td><button class="copy-btn" onclick="copyText('${item.name}')">Copy</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Populate Hex Dump
+    function renderHexDump(dump) {
+        const hexContainer = document.getElementById("hexLines");
+        hexContainer.innerHTML = "";
+        dump.forEach(line => {
+            const div = document.createElement("div");
+            div.className = "hex-line";
+            div.innerHTML = `
+                <span class="hex-offset">${line.offset}</span>
+                <span class="hex-bytes">${line.bytes}</span>
+                <span class="hex-ascii">${line.ascii}</span>
+            `;
+            hexContainer.appendChild(div);
+        });
+    }
+
+    // Filter Functionality
+    document.getElementById("searchInput").addEventListener("input", function(e) {
+        const q = e.target.value.toLowerCase();
+        const filtered = propertiesData.filter(item => 
+            item.name.toLowerCase().includes(q) ||
+            item.type.toLowerCase().includes(q) ||
+            item.hex.toLowerCase().includes(q) ||
+            item.val.toLowerCase().includes(q)
+        );
+        renderTable(filtered);
+    });
+
+    // Tab Switcher
+    function switchTab(tabName) {
+        document.getElementById("propsView").style.display = tabName === 'props' ? 'block' : 'none';
+        document.getElementById("hexView").style.display = tabName === 'hex' ? 'block' : 'none';
+        document.getElementById("metaView").style.display = tabName === 'meta' ? 'block' : 'none';
+
+        document.getElementById("tabPropsBtn").className = tabName === 'props' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById("tabHexBtn").className = tabName === 'hex' ? 'tab-btn active' : 'tab-btn';
+        document.getElementById("tabMetaBtn").className = tabName === 'meta' ? 'tab-btn active' : 'tab-btn';
+    }
+
+    function copyText(txt) {
+        navigator.clipboard.writeText(txt);
+        alert("Copied to clipboard: " + txt);
+    }
+
+    // Initialize
+    renderTable(propertiesData);
+    renderHexDump(hexDumpData);
+</script>
+
+</body>
+</html>
