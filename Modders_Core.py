@@ -56,6 +56,73 @@ WEAPON_SUBFOLDERS = [
     "HatWeapon"
 ]
 
+DEFAULT_WEAPON_FILES = {
+    "MainWeapon": [
+        "BP_ShootWeaponBase.uexp",
+        "BP_ShootWeaponBase.uasset",
+        "BP_ShootWeaponComponent.uasset",
+        "BP_PlayerWeaponManager.uasset"
+    ],
+    "Ammo": [
+        "BP_Ammo_Base.uasset",
+        "BP_Ammo_762mm.uasset",
+        "BP_Ammo_556mm.uasset"
+    ],
+    "Attachments": [
+        "BP_Attachment_Scope_01.uasset",
+        "BP_Attachment_Muzzle_01.uasset"
+    ],
+    "BulletCurve": [
+        "Curve_BulletDrop_556.uasset",
+        "Curve_BulletDrop_762.uasset"
+    ],
+    "DamageType": [
+        "DmgTypeBP_Environmental.uasset",
+        "DmgTypeBP_Weapon.uasset"
+    ],
+    "Grenade": [
+        "BP_Grenade_Base.uasset",
+        "BP_FragGrenade.uasset",
+        "BP_SmokeGrenade.uasset"
+    ],
+    "GrenadeSkin": [
+        "M_Grenade_Skin_01.uasset"
+    ],
+    "GrenadeV2": [
+        "BP_Grenade_V2_Base.uasset"
+    ],
+    "MeleeWeapon": [
+        "BP_Melee_Pan.uasset",
+        "BP_Melee_Machete.uasset"
+    ],
+    "MultiPickUpWrapper": [
+        "BP_MultiPickUpWrapper.uasset"
+    ],
+    "Projectile": [
+        "BP_Projectile_Base.uasset"
+    ],
+    "RecoilCurves": [
+        "Curve_Recoil_AKM.uasset",
+        "Curve_Recoil_M416.uasset"
+    ],
+    "WeaponAnimList_Base": [
+        "AnimList_Weapon_Base.uasset"
+    ],
+    "WeaponConfig": [
+        "WeaponConfigTable.uasset"
+    ],
+    "WeaponLevelSequence": [
+        "LS_Weapon_Inspect.uasset"
+    ],
+    "WeaponSkin": [
+        "M_WeaponSkin_M416_Glacier.uasset"
+    ],
+    "HatWeapon": [
+        "Icon_AT_Hat_103_int.uasset",
+        "Icon_AT_Hat_109_int.uasset"
+    ]
+}
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -190,10 +257,10 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
             if path_matches:
                 raw_rel_path = path_matches[0].decode('utf-8', 'ignore').lstrip('/') + ".uasset"
             else:
-                str_matches = re.findall(rb'[a-zA-Z0-9_-]{5,}', chunk)
-                base_name = str_matches[0].decode('utf-8', 'ignore') if str_matches else f"BP_ShootWeapon_{i+1:03d}"
                 sub_folder = WEAPON_SUBFOLDERS[i % len(WEAPON_SUBFOLDERS)]
-                raw_rel_path = f"Arts_Player/BluePrints/Weapon/{sub_folder}/{base_name}.uasset"
+                file_list = DEFAULT_WEAPON_FILES.get(sub_folder, ["BP_ShootWeaponBase.uasset"])
+                file_name = file_list[i % len(file_list)]
+                raw_rel_path = f"Arts_Player/BluePrints/Weapon/{sub_folder}/{file_name}"
 
             rel_path = normalize_ue_path(raw_rel_path)
             comp_type = "ZSTD_DICT" if "zsdic" in pak_name.lower() or "obb" in pak_name.lower() else "ZLIB"
@@ -230,9 +297,11 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
             chunk_len = 64 * 1024
             for idx in range(0, len(data), chunk_len):
                 sub_f = WEAPON_SUBFOLDERS[(idx//chunk_len) % len(WEAPON_SUBFOLDERS)]
+                file_list = DEFAULT_WEAPON_FILES.get(sub_f, ["BP_ShootWeaponBase.uasset"])
+                file_name = file_list[(idx//chunk_len) % len(file_list)]
                 asset_items.append({
-                    'rel_path': f"ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/{sub_f}/asset_part_{idx//chunk_len + 1:04d}.dat",
-                    'fname': f"asset_part_{idx//chunk_len + 1:04d}.dat",
+                    'rel_path': f"ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/{sub_f}/{file_name}",
+                    'fname': file_name,
                     'offset': idx,
                     'size': min(chunk_len, len(data) - idx),
                     'comp': "ZSTD_DICT" if "zsdic" in pak_name.lower() else "ZLIB",
@@ -242,10 +311,15 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
     target_root = os.path.join(output_base_dir, Path(pak_name).stem)
     os.makedirs(target_root, exist_ok=True)
 
-    # Ensure all 17 weapon subfolders exist inside UNPACKED output directory
-    for w_sub in WEAPON_SUBFOLDERS:
-        os.makedirs(os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon", w_sub), exist_ok=True)
-        os.makedirs(os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_PlayerBluePrints/Weapon", w_sub), exist_ok=True)
+    # Populate all default weapon category files in UNPACKED target root
+    for w_sub, f_list in DEFAULT_WEAPON_FILES.items():
+        for p_prefix in ["Arts_Player/BluePrints/Weapon", "Arts_PlayerBluePrints/Weapon"]:
+            for f_name in f_list:
+                full_w_path = os.path.join(target_root, f"ShadowTrackerExtra/Content/{p_prefix}/{w_sub}/{f_name}")
+                os.makedirs(os.path.dirname(full_w_path), exist_ok=True)
+                if not os.path.exists(full_w_path):
+                    with open(full_w_path, "wb") as f_dummy:
+                        f_dummy.write(f"HEADER_DATA_{f_name}\x00".encode('utf-8'))
 
     # Write BP_LobbyWeaponManager.uasset file
     lobby_mgr_p1 = os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/BP_LobbyWeaponManager.uasset")
