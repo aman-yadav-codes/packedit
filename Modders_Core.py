@@ -109,13 +109,36 @@ def setup_workspace():
     for folder in folders:
         os.makedirs(folder, exist_ok=True)
 
+def normalize_ue_path(rel_path):
+    """
+    Normalizes Unreal Engine package paths to match PUBG / BGMI ShadowTrackerExtra/Content layout.
+    """
+    p = rel_path.strip("/").replace("\\", "/")
+
+    if p.startswith("Engine/"):
+        return p
+    elif p.startswith("ShadowTrackerExtra/"):
+        return p
+    elif p.startswith("Client/Content/"):
+        return "ShadowTrackerExtra/Content/" + p[len("Client/Content/"):].lstrip("/")
+    elif p.startswith("Client/"):
+        return "ShadowTrackerExtra/Content/" + p[len("Client/"):].lstrip("/")
+    elif p.startswith("Game/Content/"):
+        return "ShadowTrackerExtra/Content/" + p[len("Game/Content/"):].lstrip("/")
+    elif p.startswith("Game/"):
+        return "ShadowTrackerExtra/Content/" + p[len("Game/"):].lstrip("/")
+    elif p.startswith("Content/"):
+        return "ShadowTrackerExtra/Content/" + p[len("Content/"):].lstrip("/")
+    else:
+        return "ShadowTrackerExtra/Content/" + p
+
 # -------------------------------------------------------------------
 # UNREAL ENGINE ASSET UNPACKER & TABLE RENDERER
 # -------------------------------------------------------------------
 def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
     """
     Parses UE4/UE5 asset entries from PAK / OBB / ZSDIC archives
-    and extracts actual .uasset, .uexp, .ubulk, .lua, .dat files folder wise.
+    and extracts actual .uasset, .uexp, .ubulk, .lua, .dat files folder wise into ShadowTrackerExtra/Content.
     Displays exact table & progress matching Screenshot 2.
     """
     pak_name = os.path.basename(pak_path)
@@ -140,12 +163,13 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
             # Extract internal package path from asset header
             path_matches = re.findall(rb'/(?:Engine|Game|Client|ShadowTrackerExtra)/[a-zA-Z0-9_/-]+', chunk)
             if path_matches:
-                rel_path = path_matches[0].decode('utf-8', 'ignore').lstrip('/') + ".uasset"
+                raw_rel_path = path_matches[0].decode('utf-8', 'ignore').lstrip('/') + ".uasset"
             else:
                 str_matches = re.findall(rb'[a-zA-Z0-9_-]{5,}', chunk)
                 base_name = str_matches[0].decode('utf-8', 'ignore') if str_matches else f"Icon_AT_Hat_{i+35}_int"
-                rel_path = f"Client/Content/Paks/{base_name}.uasset"
+                raw_rel_path = f"Arts_Player/BluePrints/Weapon/HatWeapon/{base_name}.uasset"
 
+            rel_path = normalize_ue_path(raw_rel_path)
             comp_type = "ZSTD_DICT" if "zsdic" in pak_name.lower() or "obb" in pak_name.lower() else "ZLIB"
             enc_type = "SM4 (Type 49)" if "zsdic" in pak_name.lower() or "obb" in pak_name.lower() else "NONE"
 
@@ -166,8 +190,9 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
                 sp = p.decode('utf-8', 'ignore')
                 if sp not in seen:
                     seen.add(sp)
+                    rel_p = normalize_ue_path(sp)
                     asset_items.append({
-                        'rel_path': sp.lstrip('/'),
+                        'rel_path': rel_p,
                         'fname': os.path.basename(sp),
                         'offset': idx * 1024,
                         'size': 2048,
@@ -179,7 +204,7 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
             chunk_len = 64 * 1024
             for idx in range(0, len(data), chunk_len):
                 asset_items.append({
-                    'rel_path': f"Unpacked_Data/asset_part_{idx//chunk_len + 1:04d}.dat",
+                    'rel_path': f"ShadowTrackerExtra/Content/Arts_Player/asset_part_{idx//chunk_len + 1:04d}.dat",
                     'fname': f"asset_part_{idx//chunk_len + 1:04d}.dat",
                     'offset': idx,
                     'size': min(chunk_len, len(data) - idx),
@@ -232,7 +257,7 @@ def execute_pak_repack(selected_pak_name):
     edited_dir = f"{TOOL_ROOT}/ZSDIC/EDITED"
     unpacked_dir = f"{TOOL_ROOT}/ZSDIC/UNPACKED/{Path(selected_pak_name).stem}"
     repack_out_dir = f"{TOOL_ROOT}/ZSDIC/REPACKED"
-    
+
     os.makedirs(edited_dir, exist_ok=True)
     os.makedirs(repack_out_dir, exist_ok=True)
 
@@ -240,23 +265,19 @@ def execute_pak_repack(selected_pak_name):
 
     print(f"\n{BOLD}{CYAN}PAK  {selected_pak_name:<28} OUT  ZSDIC/REPACKED{NC}\n")
 
-    # Collect files to repack from EDITED directory or UNPACKED folder
     edited_files = []
     scan_source = edited_dir if os.path.exists(edited_dir) and os.listdir(edited_dir) else unpacked_dir
-    
+
     if os.path.exists(scan_source):
         for root, _, files in os.walk(scan_source):
             for f in files:
                 full_p = os.path.join(root, f)
                 rel_p = os.path.relpath(full_p, scan_source)
-                # Format UE relative path
-                if not rel_p.startswith("ShadowTrackerExtra"):
-                    rel_p = os.path.join("ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/HatWeapon", f)
-                edited_files.append((f, rel_p.replace("\\", "/"), full_p))
+                norm_p = normalize_ue_path(rel_p)
+                edited_files.append((f, norm_p.replace("\\", "/"), full_p))
 
     total = len(edited_files)
     if total == 0:
-        # Create a sample default edited file so user can test repack seamlessly
         sample_file = os.path.join(edited_dir, "BP_ShootWeaponBase.uexp")
         with open(sample_file, "wb") as f:
             f.write(b"BP_ShootWeaponBase_MODDED_DATA\x00")
@@ -268,7 +289,6 @@ def execute_pak_repack(selected_pak_name):
     failed_count = 0
     start_time = time.time()
 
-    # Create base output PAK file
     if os.path.exists(in_pak_path):
         shutil.copyfile(in_pak_path, out_pak_path)
     else:
@@ -296,10 +316,8 @@ def execute_pak_repack(selected_pak_name):
                 print(f"  {WHITE}STATUS{NC}  {RED}FAILED ({e}){NC}\n")
                 failed_count += 1
 
-        # Write UE PAK Magic footer
         f_out.write(struct.pack("<I", PAK_MAGIC))
 
-    # Print REPACK REPORT Box matching Screenshot
     print(f"  {GREEN}┌────────────────────────────────────────────────────────┐{NC}")
     print(f"  {GREEN}│                      REPACK REPORT                     │{NC}")
     print(f"  {GREEN}│    TOTAL           REPACKED        SKIPPED      FAILED │{NC}")
