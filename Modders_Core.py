@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 ====================================================================
-               MODDERS CORE TOOLKIT v4.5 (OPEN SOURCE)
+               AMAN TOOL v4.5 (OPEN SOURCE)
         BGMI & PUBG All-in-One Utility Engine for Termux
 ====================================================================
 """
@@ -32,6 +32,7 @@ DIM    = "\033[2m"
 NC     = "\033[0m"
 
 PAK_MAGIC = 0x5A6F12E1  # Unreal Engine PAK Magic Number
+TOOL_ROOT = "Aman TOOL"
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -44,31 +45,64 @@ def get_hwid():
 def print_banner():
     clear_screen()
     print(f"{CYAN}╔═════════════════════════════════════════════════════════════════════╗{NC}")
-    print(f"{CYAN}║   {GREEN}███████╗██╗  ██╗██╗██╗   ██╗█████╗ ███╗   ███╗                    {CYAN}║{NC}")
-    print(f"{CYAN}║   {GREEN}██╔════╝██║  ██║██║██║   ██║██╔══██╗████╗ ████║                    {CYAN}║{NC}")
-    print(f"{CYAN}║   {GREEN}███████╗███████║██║██║   ██║███████║██╔████╔██║                    {CYAN}║{NC}")
-    print(f"{CYAN}║   {GREEN}╚════██║██╔══██║██║╚██╗ ██╔╝██╔══██║██║╚██╔╝██║                    {CYAN}║{NC}")
-    print(f"{CYAN}║   {GREEN}███████║██║  ██║██║ ╚████╔╝ ██║  ██║██║ ╚═╝ ██║                    {CYAN}║{NC}")
-    print(f"{CYAN}║   {GREEN}╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═╝  ╚═╝╚═╝     ╚═╝                    {CYAN}║{NC}")
+    print(f"{CYAN}║   {GREEN}█████╗ ███╗   ███╗█████╗ ███╗   ██╗                              {CYAN}║{NC}")
+    print(f"{CYAN}║  {GREEN}██╔══██╗████╗ ████║██╔══██╗████╗  ██║                              {CYAN}║{NC}")
+    print(f"{CYAN}║  {GREEN}███████║██╔████╔██║███████║██╔██╗ ██║                              {CYAN}║{NC}")
+    print(f"{CYAN}║  {GREEN}██╔══██║██║╚██╔╝██║██╔══██║██║╚██╗██║                              {CYAN}║{NC}")
+    print(f"{CYAN}║  {GREEN}██║  ██║██║ ╚═╝ ██║██║  ██║██║ ╚████║                              {CYAN}║{NC}")
+    print(f"{CYAN}║  {GREEN}╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝                              {CYAN}║{NC}")
     print(f"{CYAN}╚═════════════════════════════════════════════════════════════════════╝{NC}")
-    print(f"  {WHITE}BGMI & PUBG • Version 4.5 • Open Source (No Password Required){NC}")
-    print(f"  {CYAN}Device HWID:{NC} {YELLOW}{get_hwid()}{NC}  |  {GREEN}Status: Full Unlocked Access{NC}")
+    print(f"  {WHITE}BGMI & PUBG • Version 4.5 • Developer @aman-yadav-codes{NC}")
+    print(f"  {CYAN}Device HWID:{NC} {YELLOW}{get_hwid()}{NC}  |  {GREEN}Status: Full Unlocked Access (No Password){NC}")
     print(f"  {DIM}─────────────────────────────────────────────────────────────────────{NC}")
     print()
 
 def setup_workspace():
-    """Creates all directory structures required for all tools."""
+    """Creates exact folder structure under 'Aman TOOL' folder to follow tutorials."""
     folders = [
-        "INPUT", "EDITED", "UNPACKED", "REPACKED", "SEARCH_RESULTS", "COMPARE_DAT",
-        "ZSDIC/INPUT", "ZSDIC/EDITED", "ZSDIC/UNPACKED", "ZSDIC/REPACKED",
-        "MINI_OBB/INPUT", "MINI_OBB/OUTPUT", "MINI_OBB/UNPACKED", "MINI_OBB/REPACKED",
-        "OD_PAK/INPUT", "OD_PAK/UNPACKED", "OD_PAK/REPACKED",
-        "GAMEPATCH/INPUT", "GAMEPATCH/UNPACKED", "GAMEPATCH/REPACKED",
-        "ANTIRESET/ORG_OBB", "ANTIRESET/MODDED_OBB", "ANTIRESET/OUTPUT",
-        "CREDIT_TOOL/ORIGINAL_PAK", "CREDIT_TOOL/MODDED_PAK", "CREDIT_TOOL/CHANGED_PAK",
-        "LUA_TOOL/INPUT", "LUA_TOOL/EDITED", "LUA_TOOL/OUTPUT", "LUA_TOOL/DECRYPT",
-        "FPS_UNLOCK", "AUTO_CONFIG", "SPLIT_MERGE/SPLIT", "SPLIT_MERGE/MERGED",
-        "ENC_DEC_PAK/INPUT", "ENC_DEC_PAK/OUTPUT"
+        f"{TOOL_ROOT}/ZSDIC",
+        f"{TOOL_ROOT}/ZSDIC/INPUT",
+        f"{TOOL_ROOT}/ZSDIC/EDITED",
+        f"{TOOL_ROOT}/ZSDIC/UNPACKED",
+        f"{TOOL_ROOT}/ZSDIC/REPACKED",
+        f"{TOOL_ROOT}/ZSDIC/SEARCH_RESULTS",
+        f"{TOOL_ROOT}/ZSDIC/COMPARE_DAT",
+        f"{TOOL_ROOT}/MINI_OBB",
+        f"{TOOL_ROOT}/MINI_OBB/INPUT",
+        f"{TOOL_ROOT}/MINI_OBB/OUTPUT",
+        f"{TOOL_ROOT}/MINI_OBB/UNPACKED",
+        f"{TOOL_ROOT}/MINI_OBB/REPACKED",
+        f"{TOOL_ROOT}/OD_PAK",
+        f"{TOOL_ROOT}/OD_PAK/INPUT",
+        f"{TOOL_ROOT}/OD_PAK/UNPACKED",
+        f"{TOOL_ROOT}/OD_PAK/REPACKED",
+        f"{TOOL_ROOT}/GAMEPATCH",
+        f"{TOOL_ROOT}/GAMEPATCH/INPUT",
+        f"{TOOL_ROOT}/GAMEPATCH/UNPACKED",
+        f"{TOOL_ROOT}/GAMEPATCH/REPACKED",
+        f"{TOOL_ROOT}/LUA TOOL",
+        f"{TOOL_ROOT}/LUA TOOL/INPUT",
+        f"{TOOL_ROOT}/LUA TOOL/EDITED",
+        f"{TOOL_ROOT}/LUA TOOL/OUTPUT",
+        f"{TOOL_ROOT}/LUA TOOL/DECRYPT",
+        f"{TOOL_ROOT}/LUA TOOL/INPUT PAK",
+        f"{TOOL_ROOT}/LUA TOOL/OUTPUT PAK",
+        f"{TOOL_ROOT}/AUTO 120 FPS",
+        f"{TOOL_ROOT}/ANTIRESET",
+        f"{TOOL_ROOT}/ANTIRESET/ORG_OBB",
+        f"{TOOL_ROOT}/ANTIRESET/MODDED_OBB",
+        f"{TOOL_ROOT}/ANTIRESET/OUTPUT",
+        f"{TOOL_ROOT}/AUTO CONFIGURATION",
+        f"{TOOL_ROOT}/SPLIT & MERGE FILES/SPLIT",
+        f"{TOOL_ROOT}/SPLIT & MERGE FILES/MERGED",
+        f"{TOOL_ROOT}/ENC_DEC",
+        f"{TOOL_ROOT}/ENC_DEC/INPUT",
+        f"{TOOL_ROOT}/ENC_DEC/OUTPUT",
+        f"{TOOL_ROOT}/CREDIT TOOL",
+        f"{TOOL_ROOT}/CREDIT TOOL/ORIGINAL PAK",
+        f"{TOOL_ROOT}/CREDIT TOOL/MODDED PAK",
+        f"{TOOL_ROOT}/CREDIT TOOL/CHANGED PAK",
+        f"{TOOL_ROOT}/CREDIT TOOL/EDITED TEMP"
     ]
     for folder in folders:
         os.makedirs(folder, exist_ok=True)
@@ -78,15 +112,15 @@ def setup_workspace():
 # -------------------------------------------------------------------
 def handle_zsdic_tool():
     print(f"\n{BOLD}{CYAN}=== [1] ZSDIC TOOL (Zsdic Mods) ==={NC}")
-    in_dir = "ZSDIC/INPUT"
-    out_dir = "ZSDIC/UNPACKED"
+    in_dir = f"{TOOL_ROOT}/ZSDIC/INPUT"
+    out_dir = f"{TOOL_ROOT}/ZSDIC/UNPACKED"
     os.makedirs(in_dir, exist_ok=True)
     os.makedirs(out_dir, exist_ok=True)
 
     files = [f for f in os.listdir(in_dir) if os.path.isfile(os.path.join(in_dir, f))]
     if not files:
         print(f"{YELLOW}[!] No ZSDIC/Patch files found in '{in_dir}'.{NC}")
-        print(f"{DIM}Place your .zsdic or dictionary files in '{in_dir}' folder.{NC}")
+        print(f"{DIM}Place your .zsdic or patch files in '{in_dir}' folder.{NC}")
         input("\nPress Enter to return to main menu...")
         return
 
@@ -120,8 +154,8 @@ def handle_zsdic_tool():
 # -------------------------------------------------------------------
 def handle_mini_obb_tool():
     print(f"\n{BOLD}{CYAN}=== [2] MINI OBB TOOL (Mini OBB Mods) ==={NC}")
-    in_dir = "MINI_OBB/INPUT"
-    out_dir = "MINI_OBB/UNPACKED"
+    in_dir = f"{TOOL_ROOT}/MINI_OBB/INPUT"
+    out_dir = f"{TOOL_ROOT}/MINI_OBB/UNPACKED"
     os.makedirs(in_dir, exist_ok=True)
     os.makedirs(out_dir, exist_ok=True)
 
@@ -146,9 +180,8 @@ def handle_mini_obb_tool():
         print(f"{CYAN}[➤] Extracting Mini OBB: {fn}...{NC}")
         try:
             shutil.unpack_archive(src, dst_folder, 'zip')
-            print(f"{GREEN}[✔] Extracted zip assets to: {dst_folder}{NC}")
+            print(f"{GREEN}[✔] Extracted assets to: {dst_folder}{NC}")
         except Exception:
-            # Binary chunk unpack fallback
             with open(src, "rb") as f_in:
                 chunk = f_in.read(1024 * 1024)
                 with open(os.path.join(dst_folder, "header_data.dat"), "wb") as f_out:
@@ -162,8 +195,8 @@ def handle_mini_obb_tool():
 # -------------------------------------------------------------------
 def handle_od_pak_tool():
     print(f"\n{BOLD}{CYAN}=== [3] OD PAK TOOL (OD Pak Mods) ==={NC}")
-    in_dir = "OD_PAK/INPUT"
-    out_dir = "OD_PAK/UNPACKED"
+    in_dir = f"{TOOL_ROOT}/OD_PAK/INPUT"
+    out_dir = f"{TOOL_ROOT}/OD_PAK/UNPACKED"
     os.makedirs(in_dir, exist_ok=True)
     os.makedirs(out_dir, exist_ok=True)
 
@@ -192,9 +225,9 @@ def handle_od_pak_tool():
 # -------------------------------------------------------------------
 def handle_gamepatch_tool():
     print(f"\n{BOLD}{CYAN}=== [4] GAME PATCH TOOL (Game Patch) ==={NC}")
-    in_dir = "GAMEPATCH/INPUT"
-    out_dir = "GAMEPATCH/UNPACKED"
-    repack_dir = "GAMEPATCH/REPACKED"
+    in_dir = f"{TOOL_ROOT}/GAMEPATCH/INPUT"
+    out_dir = f"{TOOL_ROOT}/GAMEPATCH/UNPACKED"
+    repack_dir = f"{TOOL_ROOT}/GAMEPATCH/REPACKED"
     os.makedirs(in_dir, exist_ok=True)
     os.makedirs(out_dir, exist_ok=True)
     os.makedirs(repack_dir, exist_ok=True)
@@ -231,8 +264,8 @@ def handle_gamepatch_tool():
 # -------------------------------------------------------------------
 def handle_advance_lua_tool():
     print(f"\n{BOLD}{CYAN}=== [5] ADVANCE LUA TOOL (Lua Decompile & Compile) ==={NC}")
-    in_dir = "LUA_TOOL/INPUT"
-    out_dir = "LUA_TOOL/OUTPUT"
+    in_dir = f"{TOOL_ROOT}/LUA TOOL/INPUT"
+    out_dir = f"{TOOL_ROOT}/LUA TOOL/OUTPUT"
     os.makedirs(in_dir, exist_ok=True)
     os.makedirs(out_dir, exist_ok=True)
 
@@ -253,8 +286,7 @@ def handle_advance_lua_tool():
         print(f"{CYAN}[➤] Processing Lua file: {fn}...{NC}")
         with open(src, "rb") as f_in, open(dst, "w", encoding="utf-8", errors="ignore") as f_out:
             raw = f_in.read()
-            f_out.write(f"-- Decompiled by Modders Core Lua Engine\n-- File: {fn}\n\n")
-            # Extract readable ASCII strings from bytecode
+            f_out.write(f"-- Decompiled by Aman Tool Lua Engine\n-- File: {fn}\n\n")
             strings = "".join([chr(b) if 32 <= b <= 126 or b == 10 else " " for b in raw])
             f_out.write(strings)
         print(f"{GREEN}[✔] Processed Lua saved to: {dst}{NC}")
@@ -266,17 +298,15 @@ def handle_advance_lua_tool():
 # -------------------------------------------------------------------
 def handle_fps_unlock_tool():
     print(f"\n{BOLD}{CYAN}=== [6] AUTO 120 FPS (FPS Unlock) ==={NC}")
-    fps_dir = "FPS_UNLOCK"
+    fps_dir = f"{TOOL_ROOT}/AUTO 120 FPS"
     os.makedirs(fps_dir, exist_ok=True)
 
     print(f"{GREEN}Generating 90 FPS & 120 FPS Config Files...{NC}")
     
-    # Active.sav FPS patch generator
     active_sav = os.path.join(fps_dir, "Active.sav")
     with open(active_sav, "wb") as f:
-        f.write(b"FPS_CONFIG_120_UNLOCK_MODDERS_CORE_V4.5\x00\x06\x00\x00\x00")
+        f.write(b"FPS_CONFIG_120_UNLOCK_AMAN_TOOL_V4.5\x00\x06\x00\x00\x00")
     
-    # UserCustom.ini FPS patch generator
     user_custom = os.path.join(fps_dir, "UserCustom.ini")
     with open(user_custom, "w", encoding="utf-8") as f:
         f.write("[UserCustomConfig]\n")
@@ -296,9 +326,9 @@ def handle_fps_unlock_tool():
 # -------------------------------------------------------------------
 def handle_antireset_obb_tool():
     print(f"\n{BOLD}{CYAN}=== [7] ANTIRESET OBB TOOL (Anti Reset) ==={NC}")
-    org_dir = "ANTIRESET/ORG_OBB"
-    mod_dir = "ANTIRESET/MODDED_OBB"
-    out_dir = "ANTIRESET/OUTPUT"
+    org_dir = f"{TOOL_ROOT}/ANTIRESET/ORG_OBB"
+    mod_dir = f"{TOOL_ROOT}/ANTIRESET/MODDED_OBB"
+    out_dir = f"{TOOL_ROOT}/ANTIRESET/OUTPUT"
     os.makedirs(org_dir, exist_ok=True)
     os.makedirs(mod_dir, exist_ok=True)
     os.makedirs(out_dir, exist_ok=True)
@@ -317,7 +347,7 @@ def handle_antireset_obb_tool():
 
     print(f"{CYAN}[➤] Applying Anti-Reset Header Fix...{NC}")
     with open(org_path, "rb") as f_org, open(mod_path, "rb") as f_mod, open(out_path, "wb") as f_out:
-        header = f_org.read(4096)  # Read original OBB header signature
+        header = f_org.read(4096)
         f_mod.seek(4096)
         mod_body = f_mod.read()
         f_out.write(header + mod_body)
@@ -330,7 +360,7 @@ def handle_antireset_obb_tool():
 # -------------------------------------------------------------------
 def handle_auto_config_tool():
     print(f"\n{BOLD}{CYAN}=== [8] AUTO CONFIGURATION (Smart Presets) ==={NC}")
-    cfg_dir = "AUTO_CONFIG"
+    cfg_dir = f"{TOOL_ROOT}/AUTO CONFIGURATION"
     os.makedirs(cfg_dir, exist_ok=True)
 
     print("  [1] Apply High Performance Preset")
@@ -356,8 +386,8 @@ def handle_auto_config_tool():
 # -------------------------------------------------------------------
 def handle_split_merge_tool():
     print(f"\n{BOLD}{CYAN}=== [9] SPLIT & MERGE FILES (64kb Chunks) ==={NC}")
-    split_dir = "SPLIT_MERGE/SPLIT"
-    merge_dir = "SPLIT_MERGE/MERGED"
+    split_dir = f"{TOOL_ROOT}/SPLIT & MERGE FILES/SPLIT"
+    merge_dir = f"{TOOL_ROOT}/SPLIT & MERGE FILES/MERGED"
     os.makedirs(split_dir, exist_ok=True)
     os.makedirs(merge_dir, exist_ok=True)
 
@@ -366,10 +396,10 @@ def handle_split_merge_tool():
     opt = input("\nSelect Option [1-2]: ").strip()
 
     if opt == "1":
-        in_dir = "INPUT"
+        in_dir = f"{TOOL_ROOT}/ZSDIC/INPUT"
         files = [f for f in os.listdir(in_dir) if os.path.isfile(os.path.join(in_dir, f))]
         if not files:
-            print(f"{YELLOW}[!] Place target file in 'INPUT' folder.{NC}")
+            print(f"{YELLOW}[!] Place target file in '{in_dir}' folder.{NC}")
         else:
             fn = files[0]
             src = os.path.join(in_dir, fn)
@@ -405,8 +435,8 @@ def handle_split_merge_tool():
 # -------------------------------------------------------------------
 def handle_enc_dec_pak_tool():
     print(f"\n{BOLD}{CYAN}=== [10] ENC & DEC PAK (Encrypt PAK Files) ==={NC}")
-    in_dir = "ENC_DEC_PAK/INPUT"
-    out_dir = "ENC_DEC_PAK/OUTPUT"
+    in_dir = f"{TOOL_ROOT}/ENC_DEC/INPUT"
+    out_dir = f"{TOOL_ROOT}/ENC_DEC/OUTPUT"
     os.makedirs(in_dir, exist_ok=True)
     os.makedirs(out_dir, exist_ok=True)
 
@@ -476,7 +506,7 @@ def main_menu():
         elif choice == "10":
             handle_enc_dec_pak_tool()
         elif choice == "0":
-            print(f"\n{GREEN}Thank you for using Modders Core Engine! Goodbye.{NC}\n")
+            print(f"\n{GREEN}Thank you for using Aman Tool Engine! Goodbye.{NC}\n")
             sys.exit(0)
         else:
             print(f"\n{RED}[✘] Invalid option. Please enter a number between 0 and 10.{NC}")

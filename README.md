@@ -50,7 +50,7 @@ A powerful all-in-one toolkit for unpacking, editing, comparing and repacking PU
 # 📁 Folder Structure
 
 ```
-Tool Name/
+Aman TOOL/
 
 │
 ├── ZSDIC/
@@ -272,8 +272,9 @@ Users are responsible for following the terms and policies of any software or ga
 
 Developer
 
-**Shivam**
+**Aman**
 
-Powered by @ShivamMaurya09 
+Powered by @aman-yadav-codes 
 
-**Modders Core Engine**
+**Aman Tool Engine**
+
