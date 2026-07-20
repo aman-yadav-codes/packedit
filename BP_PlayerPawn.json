@@ -1,0 +1,9 @@
+{
+    "asset_name": "BP_PlayerPawn.uexp",
+    "camera_properties": {
+        "FieldOfView": 110.0,
+        "TargetArmLength": 420.0,
+        "TPPCameraFOV": 110.0,
+        "FPPCameraFOV": 115.0
+    }
+}

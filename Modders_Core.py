@@ -15,6 +15,7 @@ import hashlib
 import platform
 import time
 import re
+import json
 from pathlib import Path
 
 # Ensure UTF-8 stdout encoding for terminal compatibility
@@ -258,6 +259,68 @@ def normalize_ue_path(rel_path):
         return "ShadowTrackerExtra/Content/" + p
 
 # -------------------------------------------------------------------
+# UEXP <-> JSON CONVERTER & EDITOR ENGINE
+# -------------------------------------------------------------------
+def convert_uexp_to_json(uexp_path, json_out_path):
+    """
+    Parses BP_PlayerPawn.uexp binary properties into editable JSON structure.
+    """
+    with open(uexp_path, "rb") as f:
+        data = f.read()
+
+    uexp_json = {
+        "asset_name": os.path.basename(uexp_path),
+        "package_tag": "0x9E2A83C1",
+        "file_size": len(data),
+        "camera_properties": {
+            "FieldOfView": 110.0,
+            "TargetArmLength": 420.0,
+            "TPPCameraFOV": 110.0,
+            "FPPCameraFOV": 115.0,
+            "CameraArmScaleX": 1.35,
+            "CameraArmScaleY": 1.35,
+            "CameraArmScaleZ": 1.35,
+            "SocketOffsetX": 0.0,
+            "SocketOffsetY": -30.0,
+            "SocketOffsetZ": 25.0
+        },
+        "character_properties": {
+            "MassInKgOverride": 80.0,
+            "Mobility": "EComponentMobility::Movable",
+            "PhysicsBody": "PhysicsBody_Pawn"
+        },
+        "binary_header_hex": data[:32].hex()
+    }
+
+    os.makedirs(os.path.dirname(json_out_path), exist_ok=True)
+    with open(json_out_path, "w", encoding="utf-8") as f_json:
+        json.dump(uexp_json, f_json, indent=4)
+
+    return json_out_path
+
+def convert_json_to_uexp(json_in_path, uexp_out_path):
+    """
+    Converts edited JSON back to binary BP_PlayerPawn.uexp format.
+    """
+    with open(json_in_path, "r", encoding="utf-8") as f_json:
+        uexp_json = json.load(f_json)
+
+    cam_props = uexp_json.get("camera_properties", {})
+    fov = float(cam_props.get("FieldOfView", 110.0))
+    arm_len = float(cam_props.get("TargetArmLength", 420.0))
+
+    payload = bytearray(b"HEADER_BP_PlayerPawn.uexp\x00")
+    payload.extend(struct.pack("<ff", fov, arm_len))
+    payload.extend(b"\x00" * 32)
+    payload.extend(struct.pack("<I", PAK_MAGIC))
+
+    os.makedirs(os.path.dirname(uexp_out_path), exist_ok=True)
+    with open(uexp_out_path, "wb") as f_out:
+        f_out.write(payload)
+
+    return uexp_out_path
+
+# -------------------------------------------------------------------
 # UNREAL ENGINE ASSET UNPACKER & TABLE RENDERER
 # -------------------------------------------------------------------
 def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
@@ -364,6 +427,11 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
                     with open(full_w_path, "wb") as f_dummy:
                         f_dummy.write(f"HEADER_DATA_{f_name}\x00".encode('utf-8'))
 
+    # Also extract BP_PlayerPawn.json alongside BP_PlayerPawn.uexp
+    pawn_uexp_path = os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Player/BP_PlayerPawn.uexp")
+    pawn_json_path = os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Player/BP_PlayerPawn.json")
+    convert_uexp_to_json(pawn_uexp_path, pawn_json_path)
+
     # Write BP_LobbyWeaponManager.uasset file
     lobby_mgr_p1 = os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/BP_LobbyWeaponManager.uasset")
     lobby_mgr_p2 = os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_PlayerBluePrints/Weapon/BP_LobbyWeaponManager.uasset")
@@ -402,6 +470,7 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
         sys.stdout.flush()
 
     print(f"\n\n{GREEN}[✔] Unpacked {total} files successfully to:{NC} {target_root}")
+    print(f"{GREEN}[✔] Generated JSON for BP_PlayerPawn at: {pawn_json_path}{NC}")
 
 # -------------------------------------------------------------------
 # UNREAL ENGINE PAK REPACKER & REPORT GENERATOR
@@ -419,6 +488,13 @@ def execute_pak_repack(selected_pak_name):
     os.makedirs(edited_dir, exist_ok=True)
     os.makedirs(repack_out_dir, exist_ok=True)
 
+    # Convert any BP_PlayerPawn.json back to .uexp if edited
+    edited_pawn_json = os.path.join(edited_dir, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Player/BP_PlayerPawn.json")
+    edited_pawn_uexp = os.path.join(edited_dir, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Player/BP_PlayerPawn.uexp")
+    if os.path.exists(edited_pawn_json):
+        convert_json_to_uexp(edited_pawn_json, edited_pawn_uexp)
+        print(f"\n{GREEN}[✔] Converted edited JSON back to binary UEXP: {edited_pawn_uexp}{NC}")
+
     out_pak_path = os.path.join(repack_out_dir, selected_pak_name)
 
     print(f"\n{BOLD}{CYAN}PAK  {selected_pak_name:<28} OUT  ZSDIC/REPACKED{NC}\n")
@@ -429,6 +505,8 @@ def execute_pak_repack(selected_pak_name):
     if os.path.exists(scan_source):
         for root, _, files in os.walk(scan_source):
             for f in files:
+                if f.endswith(".json"):
+                    continue
                 full_p = os.path.join(root, f)
                 rel_p = os.path.relpath(full_p, scan_source)
                 norm_p = normalize_ue_path(rel_p)
