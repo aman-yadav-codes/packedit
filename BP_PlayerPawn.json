@@ -1,9 +1,23 @@
 {
     "asset_name": "BP_PlayerPawn.uexp",
+    "package_tag": "0x9E2A83C1",
+    "file_size": 26,
     "camera_properties": {
         "FieldOfView": 110.0,
         "TargetArmLength": 420.0,
         "TPPCameraFOV": 110.0,
-        "FPPCameraFOV": 115.0
-    }
+        "FPPCameraFOV": 115.0,
+        "CameraArmScaleX": 1.35,
+        "CameraArmScaleY": 1.35,
+        "CameraArmScaleZ": 1.35,
+        "SocketOffsetX": 0.0,
+        "SocketOffsetY": -30.0,
+        "SocketOffsetZ": 25.0
+    },
+    "character_properties": {
+        "MassInKgOverride": 80.0,
+        "Mobility": "EComponentMobility::Movable",
+        "PhysicsBody": "PhysicsBody_Pawn"
+    },
+    "binary_header_hex": "4845414445525f42505f506c617965725061776e2e7565787000"
 }
