@@ -81,7 +81,7 @@ print_final_box() {
     echo -e "${GREEN}  ║   ${WHITE}HOW TO RUN:${GREEN}                           ║${NC}"
     echo -e "${GREEN}  ║                                          ║${NC}"
     echo -e "${GREEN}  ║   ${CYAN}❯  Modders_Core${GREEN}                        ║${NC}"
-    echo -e "${GREEN}  ║   ${YELLOW}🔑  DEFAULT KEY: 0000${GREEN}                  ║${NC}"
+    echo -e "${GREEN}  ║   ${YELLOW}✔  NO KEY REQUIRED${GREEN}                   ║${NC}"
     echo -e "${GREEN}  ║                                          ║${NC}"
     echo -e "${GREEN}  ╠══════════════════════════════════════════╣${NC}"
     echo -e "${GREEN}  ║                                          ║${NC}"

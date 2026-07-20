@@ -58,7 +58,6 @@ cd ~/Modders_Core
 ./Modders_Core
 ```
 
-- When prompted for **Key / Password**, enter: **`0000`**
 - In the menu screen, select **PAK Unpack** (or **GamePatch Tool**).
 - Your unpacked files will be saved in:
   `~/Modders_Core/UNPACKED`

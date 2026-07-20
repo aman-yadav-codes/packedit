@@ -131,7 +131,7 @@ Run
 Modders_Core
 ```
 
-> 🔑 **Default Key:** `0000` (Enter `0000` when prompted for key/license).
+> ✔ **No Key / Password Required** (Direct open-source access to all tools).
 
 The tool automatically installs all missing dependencies.
 
@@ -241,7 +241,7 @@ Supports
 
 The toolkit includes multiple security mechanisms:
 
-- License Verification (Default Key: 0000)
+- License Verification (Disabled / Open Source)
 - Device Binding
 - Live Validation
 - OTA Update
