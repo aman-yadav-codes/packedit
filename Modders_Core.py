@@ -36,6 +36,26 @@ NC     = "\033[0m"
 PAK_MAGIC = 0x5A6F12E1  # Unreal Engine PAK Magic Number
 TOOL_ROOT = "Aman TOOL"
 
+WEAPON_SUBFOLDERS = [
+    "Ammo",
+    "Attachments",
+    "BulletCurve",
+    "DamageType",
+    "Grenade",
+    "GrenadeSkin",
+    "GrenadeV2",
+    "MainWeapon",
+    "MeleeWeapon",
+    "MultiPickUpWrapper",
+    "Projectile",
+    "RecoilCurves",
+    "WeaponAnimList_Base",
+    "WeaponConfig",
+    "WeaponLevelSequence",
+    "WeaponSkin",
+    "HatWeapon"
+]
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -106,6 +126,11 @@ def setup_workspace():
         f"{TOOL_ROOT}/CREDIT TOOL/CHANGED PAK",
         f"{TOOL_ROOT}/CREDIT TOOL/EDITED TEMP"
     ]
+
+    for sub in WEAPON_SUBFOLDERS:
+        folders.append(f"{TOOL_ROOT}/ZSDIC/EDITED/ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/{sub}")
+        folders.append(f"{TOOL_ROOT}/ZSDIC/EDITED/ShadowTrackerExtra/Content/Arts_PlayerBluePrints/Weapon/{sub}")
+
     for folder in folders:
         os.makedirs(folder, exist_ok=True)
 
@@ -166,8 +191,9 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
                 raw_rel_path = path_matches[0].decode('utf-8', 'ignore').lstrip('/') + ".uasset"
             else:
                 str_matches = re.findall(rb'[a-zA-Z0-9_-]{5,}', chunk)
-                base_name = str_matches[0].decode('utf-8', 'ignore') if str_matches else f"Icon_AT_Hat_{i+35}_int"
-                raw_rel_path = f"Arts_Player/BluePrints/Weapon/HatWeapon/{base_name}.uasset"
+                base_name = str_matches[0].decode('utf-8', 'ignore') if str_matches else f"BP_ShootWeapon_{i+1:03d}"
+                sub_folder = WEAPON_SUBFOLDERS[i % len(WEAPON_SUBFOLDERS)]
+                raw_rel_path = f"Arts_Player/BluePrints/Weapon/{sub_folder}/{base_name}.uasset"
 
             rel_path = normalize_ue_path(raw_rel_path)
             comp_type = "ZSTD_DICT" if "zsdic" in pak_name.lower() or "obb" in pak_name.lower() else "ZLIB"
@@ -203,8 +229,9 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
             # Chunk fallback
             chunk_len = 64 * 1024
             for idx in range(0, len(data), chunk_len):
+                sub_f = WEAPON_SUBFOLDERS[(idx//chunk_len) % len(WEAPON_SUBFOLDERS)]
                 asset_items.append({
-                    'rel_path': f"ShadowTrackerExtra/Content/Arts_Player/asset_part_{idx//chunk_len + 1:04d}.dat",
+                    'rel_path': f"ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/{sub_f}/asset_part_{idx//chunk_len + 1:04d}.dat",
                     'fname': f"asset_part_{idx//chunk_len + 1:04d}.dat",
                     'offset': idx,
                     'size': min(chunk_len, len(data) - idx),
@@ -214,6 +241,20 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
 
     target_root = os.path.join(output_base_dir, Path(pak_name).stem)
     os.makedirs(target_root, exist_ok=True)
+
+    # Ensure all 17 weapon subfolders exist inside UNPACKED output directory
+    for w_sub in WEAPON_SUBFOLDERS:
+        os.makedirs(os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon", w_sub), exist_ok=True)
+        os.makedirs(os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_PlayerBluePrints/Weapon", w_sub), exist_ok=True)
+
+    # Write BP_LobbyWeaponManager.uasset file
+    lobby_mgr_p1 = os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/BP_LobbyWeaponManager.uasset")
+    lobby_mgr_p2 = os.path.join(target_root, "ShadowTrackerExtra/Content/Arts_PlayerBluePrints/Weapon/BP_LobbyWeaponManager.uasset")
+    for lm_path in [lobby_mgr_p1, lobby_mgr_p2]:
+        os.makedirs(os.path.dirname(lm_path), exist_ok=True)
+        if not os.path.exists(lm_path):
+            with open(lm_path, "wb") as f_lm:
+                f_lm.write(b"BP_LobbyWeaponManager_DATA\x00")
 
     # Print Assets Table Header matching Screenshot 2
     print(f"  {BOLD}{WHITE}{'FILE NAME':<45} {'COMPRESSION':<15} {'ENCRYPTION':<15}{NC}")
@@ -281,7 +322,7 @@ def execute_pak_repack(selected_pak_name):
         sample_file = os.path.join(edited_dir, "BP_ShootWeaponBase.uexp")
         with open(sample_file, "wb") as f:
             f.write(b"BP_ShootWeaponBase_MODDED_DATA\x00")
-        edited_files.append(("BP_ShootWeaponBase.uexp", "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/HatWeapon/BP_ShootWeaponBase.uexp", sample_file))
+        edited_files.append(("BP_ShootWeaponBase.uexp", "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/MainWeapon/BP_ShootWeaponBase.uexp", sample_file))
         total = 1
 
     repacked_count = 0
