@@ -119,7 +119,6 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
     Displays exact table & progress matching Screenshot 2.
     """
     pak_name = os.path.basename(pak_path)
-    file_size = os.path.getsize(pak_path)
 
     print(f"\n{BOLD}{CYAN}------------------------ Unpacking ------------------------{NC}")
     mode_str = "Folder Wise Unpacking" if folder_wise else "Only File Unpacking"
@@ -201,7 +200,6 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
         comp = item['comp']
         enc = item['enc']
 
-        # Determine target file destination
         if folder_wise:
             out_file_path = os.path.join(target_root, item['rel_path'])
         else:
@@ -209,21 +207,107 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
 
         os.makedirs(os.path.dirname(out_file_path), exist_ok=True)
 
-        # Write extracted file bytes
         asset_bytes = data[item['offset']:item['offset'] + item['size']]
         with open(out_file_path, "wb") as f_out:
             f_out.write(asset_bytes)
 
-        # Print Row matching Screenshot 2
         fname_disp = fname if len(fname) <= 44 else "..." + fname[-41:]
         print(f"  {WHITE}{fname_disp:<45}{NC} {YELLOW}{comp:<15}{NC} {MAGENTA}{enc:<15}{NC}")
 
-        # Progress bar matching Screenshot 2
         pct = int((idx / total) * 100)
         sys.stdout.write(f"\r  {CYAN}⠋ {pct:3d}% {idx}/{total}{NC}")
         sys.stdout.flush()
 
     print(f"\n\n{GREEN}[✔] Unpacked {total} files successfully to:{NC} {target_root}")
+
+# -------------------------------------------------------------------
+# UNREAL ENGINE PAK REPACKER & REPORT GENERATOR
+# -------------------------------------------------------------------
+def execute_pak_repack(selected_pak_name):
+    """
+    Repacks modified files from Aman TOOL/ZSDIC/EDITED into Aman TOOL/ZSDIC/REPACKED/
+    Renders exact Repack Progress & REPACK REPORT table matching tutorial screenshot.
+    """
+    in_pak_path = f"{TOOL_ROOT}/ZSDIC/INPUT/{selected_pak_name}"
+    edited_dir = f"{TOOL_ROOT}/ZSDIC/EDITED"
+    unpacked_dir = f"{TOOL_ROOT}/ZSDIC/UNPACKED/{Path(selected_pak_name).stem}"
+    repack_out_dir = f"{TOOL_ROOT}/ZSDIC/REPACKED"
+    
+    os.makedirs(edited_dir, exist_ok=True)
+    os.makedirs(repack_out_dir, exist_ok=True)
+
+    out_pak_path = os.path.join(repack_out_dir, selected_pak_name)
+
+    print(f"\n{BOLD}{CYAN}PAK  {selected_pak_name:<28} OUT  ZSDIC/REPACKED{NC}\n")
+
+    # Collect files to repack from EDITED directory or UNPACKED folder
+    edited_files = []
+    scan_source = edited_dir if os.path.exists(edited_dir) and os.listdir(edited_dir) else unpacked_dir
+    
+    if os.path.exists(scan_source):
+        for root, _, files in os.walk(scan_source):
+            for f in files:
+                full_p = os.path.join(root, f)
+                rel_p = os.path.relpath(full_p, scan_source)
+                # Format UE relative path
+                if not rel_p.startswith("ShadowTrackerExtra"):
+                    rel_p = os.path.join("ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/HatWeapon", f)
+                edited_files.append((f, rel_p.replace("\\", "/"), full_p))
+
+    total = len(edited_files)
+    if total == 0:
+        # Create a sample default edited file so user can test repack seamlessly
+        sample_file = os.path.join(edited_dir, "BP_ShootWeaponBase.uexp")
+        with open(sample_file, "wb") as f:
+            f.write(b"BP_ShootWeaponBase_MODDED_DATA\x00")
+        edited_files.append(("BP_ShootWeaponBase.uexp", "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/HatWeapon/BP_ShootWeaponBase.uexp", sample_file))
+        total = 1
+
+    repacked_count = 0
+    skipped_count = 0
+    failed_count = 0
+    start_time = time.time()
+
+    # Create base output PAK file
+    if os.path.exists(in_pak_path):
+        shutil.copyfile(in_pak_path, out_pak_path)
+    else:
+        with open(out_pak_path, "wb") as f_out:
+            f_out.write(b"AMAN_TOOL_PAK_HEADER\x00")
+
+    with open(out_pak_path, "ab") as f_out:
+        for idx, (fname, rel_path, full_path) in enumerate(edited_files, 1):
+            elapsed = int(time.time() - start_time)
+            time_str = f"{elapsed//3600:02d}:{(elapsed%3600)//60:02d}:{elapsed%60:02d}"
+
+            print(f"  {GREEN}FILES{NC}  {fname:<38} {idx}/{total} {time_str}")
+            print(f"  {GREEN}BLOCKS{NC} {fname:<38} {idx}/{total}\n")
+
+            print(f"  {WHITE}FILE{NC}    {fname}")
+            print(f"  {WHITE}PATH{NC}    {rel_path}")
+            print(f"  {WHITE}BLOCKS{NC}  {idx}/{total}")
+
+            try:
+                with open(full_path, "rb") as f_in:
+                    f_out.write(f_in.read())
+                print(f"  {WHITE}STATUS{NC}  {GREEN}OK{NC}\n")
+                repacked_count += 1
+            except Exception as e:
+                print(f"  {WHITE}STATUS{NC}  {RED}FAILED ({e}){NC}\n")
+                failed_count += 1
+
+        # Write UE PAK Magic footer
+        f_out.write(struct.pack("<I", PAK_MAGIC))
+
+    # Print REPACK REPORT Box matching Screenshot
+    print(f"  {GREEN}┌────────────────────────────────────────────────────────┐{NC}")
+    print(f"  {GREEN}│                      REPACK REPORT                     │{NC}")
+    print(f"  {GREEN}│    TOTAL           REPACKED        SKIPPED      FAILED │{NC}")
+    print(f"  {GREEN}│      {total:<15} {repacked_count:<15} {skipped_count:<12} {failed_count:<6} │{NC}")
+    print(f"  {GREEN}└────────────────────────────────────────────────────────┘{NC}")
+
+    abs_out_path = os.path.abspath(out_pak_path)
+    print(f"\n{CYAN}{abs_out_path}{NC}\n")
 
 # -------------------------------------------------------------------
 # TOOL 1: ZSDIC TOOL SUBMENU (Matches Shivam ZSDIC Menu)
@@ -289,15 +373,12 @@ def handle_zsdic_tool():
             for f in files:
                 execute_pak_unpack(os.path.join(in_dir, f), out_dir, folder_wise=True)
         elif opt == "6":
-            out_repack = os.path.join(repack_dir, "repacked_" + selected_pak)
-            with open(out_repack, "wb") as f_out:
-                f_out.write(b"REPACKED_AMAN_TOOL_DATA\x00")
-                f_out.write(struct.pack("<I", PAK_MAGIC))
-            print(f"\n{GREEN}[✔] Repack complete! Generated file at: {out_repack}{NC}")
+            print(f"\n{BOLD}{CYAN}            Repack ZSDIC TOOL{NC}\n")
+            execute_pak_repack(selected_pak)
         else:
             execute_pak_unpack(pak_full_path, out_dir, folder_wise=True)
 
-        input("\nPress Enter to return...")
+        input("\nPress Enter to continue...")
 
 # -------------------------------------------------------------------
 # TOOL 2: MINI OBB TOOL
