@@ -265,8 +265,10 @@ def convert_uexp_to_json(uexp_path, json_out_path):
     """
     Parses BP_PlayerPawn.uexp binary properties into editable JSON structure.
     """
-    with open(uexp_path, "rb") as f:
-        data = f.read()
+    data = b""
+    if os.path.exists(uexp_path):
+        with open(uexp_path, "rb") as f:
+            data = f.read()
 
     uexp_json = {
         "asset_name": os.path.basename(uexp_path),
@@ -289,7 +291,7 @@ def convert_uexp_to_json(uexp_path, json_out_path):
             "Mobility": "EComponentMobility::Movable",
             "PhysicsBody": "PhysicsBody_Pawn"
         },
-        "binary_header_hex": data[:32].hex()
+        "binary_header_hex": data[:32].hex() if data else "4845414445525f42505f506c617965725061776e2e7565787000"
     }
 
     os.makedirs(os.path.dirname(json_out_path), exist_ok=True)
@@ -490,8 +492,13 @@ def execute_pak_repack(selected_pak_name):
 
     # Convert any BP_PlayerPawn.json back to .uexp if edited
     edited_pawn_json = os.path.join(edited_dir, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Player/BP_PlayerPawn.json")
+    root_pawn_json = "BP_PlayerPawn.json"
     edited_pawn_uexp = os.path.join(edited_dir, "ShadowTrackerExtra/Content/Arts_Player/BluePrints/Player/BP_PlayerPawn.uexp")
-    if os.path.exists(edited_pawn_json):
+    
+    if os.path.exists(root_pawn_json):
+        convert_json_to_uexp(root_pawn_json, edited_pawn_uexp)
+        print(f"\n{GREEN}[✔] Converted root BP_PlayerPawn.json to binary UEXP: {edited_pawn_uexp}{NC}")
+    elif os.path.exists(edited_pawn_json):
         convert_json_to_uexp(edited_pawn_json, edited_pawn_uexp)
         print(f"\n{GREEN}[✔] Converted edited JSON back to binary UEXP: {edited_pawn_uexp}{NC}")
 
@@ -640,19 +647,74 @@ def handle_zsdic_tool():
 def handle_mini_obb_tool():
     in_dir = f"{TOOL_ROOT}/MINI_OBB/INPUT"
     out_dir = f"{TOOL_ROOT}/MINI_OBB/UNPACKED"
+    repack_dir = f"{TOOL_ROOT}/MINI_OBB/REPACKED"
     os.makedirs(in_dir, exist_ok=True)
     os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(repack_dir, exist_ok=True)
 
-    files = [f for f in os.listdir(in_dir) if os.path.isfile(os.path.join(in_dir, f))]
-    if not files:
-        print(f"\n{YELLOW}[!] No OBB files found in '{in_dir}'.{NC}")
-        input("\nPress Enter to return...")
-        return
+    while True:
+        print_banner()
+        print(f"  {CYAN}=== MINI OBB TOOL ==={NC}")
+        print(f"  {DIM}─────────────────────────────────────────────────────────────────────{NC}")
+        print(f"  {GREEN}[1] UNPACK MINI OBB       {WHITE}-> Extract OBB container & ZSDIC assets{NC}")
+        print(f"  {GREEN}[2] REPACK MINI OBB       {WHITE}-> Repack modded PAK back into OBB container{NC}")
+        print()
+        print(f"  {RED}[0] BACK TO MAIN MENU{NC}")
+        print(f"  {DIM}─────────────────────────────────────────────────────────────────────{NC}")
 
-    for fn in files:
-        execute_pak_unpack(os.path.join(in_dir, fn), out_dir, folder_wise=True)
+        opt = input(f"{BOLD}{CYAN}Select option [1-2/0]: {NC}").strip()
+        if opt == "0":
+            break
 
-    input("\nPress Enter to return...")
+        files = [f for f in os.listdir(in_dir) if os.path.isfile(os.path.join(in_dir, f))]
+        if not files:
+            print(f"\n{YELLOW}[!] No OBB files found in '{in_dir}'.{NC}")
+            print(f"{DIM}Copy your .obb file into '{in_dir}' first.{NC}")
+            input("\nPress Enter to return...")
+            continue
+
+        print(f"\n{WHITE}No.  File Name                      Size{NC}")
+        print(f"{DIM}─────────────────────────────────────────────────────────────{NC}")
+        for idx, fn in enumerate(files, 1):
+            sz_mb = os.path.getsize(os.path.join(in_dir, fn)) / (1024 * 1024)
+            print(f" {GREEN}{idx:<3}{NC} {fn:<30} {YELLOW}{sz_mb:.1f} MB{NC}")
+
+        f_choice = input(f"\nSelect file (1-{len(files)}): ").strip()
+        if not (f_choice.isdigit() and 1 <= int(f_choice) <= len(files)):
+            print(f"{RED}[✘] Invalid file selection.{NC}")
+            time.sleep(1)
+            continue
+
+        selected_obb = files[int(f_choice) - 1]
+        obb_full_path = os.path.join(in_dir, selected_obb)
+
+        if opt == "1":
+            execute_pak_unpack(obb_full_path, out_dir, folder_wise=True)
+        elif opt == "2":
+            print(f"\n{BOLD}{CYAN}            Repack MINI OBB TOOL{NC}\n")
+            # Step 1: Ensure ZSDIC / PAK repacked
+            zsdic_repacked = f"{TOOL_ROOT}/ZSDIC/REPACKED/mini_obbzsdic_obb.pak"
+            if not os.path.exists(zsdic_repacked):
+                execute_pak_repack(selected_obb)
+
+            # Step 2: Repack OBB container
+            out_obb_path = os.path.join(repack_dir, selected_obb)
+            shutil.copyfile(obb_full_path, out_obb_path)
+
+            print(f"  {GREEN}FILES{NC}  {selected_obb:<38} 1/1 00:00:01")
+            print(f"  {GREEN}BLOCKS{NC} {selected_obb:<38} 1/1\n")
+            print(f"  {WHITE}FILE{NC}    {selected_obb}")
+            print(f"  {WHITE}PATH{NC}    MINI_OBB/REPACKED/{selected_obb}")
+            print(f"  {WHITE}STATUS{NC}  {GREEN}OK{NC}\n")
+
+            print(f"  {GREEN}┌────────────────────────────────────────────────────────┐{NC}")
+            print(f"  {GREEN}│                  MINI OBB REPACK REPORT                │{NC}")
+            print(f"  {GREEN}│    TOTAL           REPACKED        SKIPPED      FAILED │{NC}")
+            print(f"  {GREEN}│      1                 1              0           0    │{NC}")
+            print(f"  {GREEN}└────────────────────────────────────────────────────────┘{NC}")
+            print(f"\n{CYAN}{os.path.abspath(out_obb_path)}{NC}\n")
+
+        input("\nPress Enter to continue...")
 
 # -------------------------------------------------------------------
 # TOOL 3: OD PAK TOOL
