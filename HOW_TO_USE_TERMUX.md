@@ -4,19 +4,25 @@ Follow these exact commands one by one in your Termux app on Android.
 
 ---
 
-## 🔹 STEP 1: Install Required Packages
+## 🔹 STEP 1: Update Termux & Install Packages
 
 Copy and paste this line into Termux and press **Enter**:
 
 ```bash
-pkg update -y && pkg install git python curl -y
+pkg update && pkg upgrade -y && pkg install git python -y
 ```
 
 ---
 
-## 🔹 STEP 2: Download Modders Core Tool
+## 🔹 STEP 2: Download & Run Tool
 
-Copy and paste this line and press **Enter**:
+If `curl` shows an error (`CANNOT LINK EXECUTABLE "curl"`), use this **direct Git command** (works 100%):
+
+```bash
+git clone https://github.com/aman-yadav-codes/packedit.git ~/Modders_Core && cd ~/Modders_Core && python3 Modders_Core.py
+```
+
+Or via curl installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/aman-yadav-codes/packedit/main/install.sh | bash
