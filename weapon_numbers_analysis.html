@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BP_ShootWeaponBase & BP_PlayerPawn Binary Numeric Values Dashboard</title>
+    <meta name="description" content="Extracted exact numeric values, floating point numbers, integers, and hex offsets for BP_ShootWeaponBase.uasset and BP_PlayerPawn.uexp.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #070913;
+            --bg-card: rgba(16, 22, 42, 0.8);
+            --bg-card-hover: rgba(25, 34, 64, 0.9);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #764ba2;
+            --accent-red: #ff416c;
+            --accent-neon: #38ef7d;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(56, 239, 125, 0.08) 0%, transparent 45%);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .badge-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+        }
+
+        h1 {
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #ffffff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-subtitle {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+        }
+
+        /* Stat Cards Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-neon));
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+        }
+
+        .stat-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Side-by-Side Comparison Container */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .column-header {
+            padding: 1.25rem 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-tag {
+            font-family: var(--font-mono);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .file-tag.uasset {
+            background: rgba(0, 242, 254, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+        }
+
+        .file-tag.uexp {
+            background: rgba(56, 239, 125, 0.15);
+            color: var(--accent-neon);
+            border: 1px solid rgba(56, 239, 125, 0.3);
+        }
+
+        /* Tables inside comparison */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.9rem 1.1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        td {
+            padding: 0.8rem 1.1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-main);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .offset-tag {
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            font-weight: 500;
+            background: rgba(0, 242, 254, 0.1);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .type-tag {
+            font-family: var(--font-mono);
+            color: #f6d365;
+            background: rgba(246, 211, 101, 0.1);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.78rem;
+        }
+
+        .val-text {
+            font-family: var(--font-mono);
+            color: #a8ff78;
+            word-break: break-all;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div class="header-title-box">
+            <div class="badge-icon">#</div>
+            <div>
+                <h1>Unreal Engine Binary Exact Numeric Values Table</h1>
+                <p class="header-subtitle">Extracted Floating-Point Numbers, Integers, and Offset Mappings for BP_ShootWeaponBase & BP_PlayerPawn</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Weapon Asset</div>
+            <div class="stat-value" style="color: var(--accent-cyan);">BP_ShootWeaponBase.uasset</div>
+            <div class="stat-desc">37 Extracted Numerical Floats & Offsets</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Pawn Camera Asset</div>
+            <div class="stat-value" style="color: var(--accent-neon);">BP_PlayerPawn.uexp</div>
+            <div class="stat-desc">FOV = 120.0° | ArmLength = 650.0</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Texture Resolution Scale</div>
+            <div class="stat-value" style="color: #f6d365;">2048 x 2048 / 8192</div>
+            <div class="stat-desc">Extracted Texture Grid Constants</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Weapon Recoil Base</div>
+            <div class="stat-value" style="color: var(--accent-blue);">13.9659 / 55.8637</div>
+            <div class="stat-desc">Vertical / Horizontal Bump Scale Coefficients</div>
+        </div>
+    </div>
+
+    <!-- Side-by-Side File Comparison -->
+    <div class="comparison-grid">
+        <!-- BP_ShootWeaponBase.uasset Column -->
+        <div class="column-card">
+            <div class="column-header">
+                <div class="column-title">
+                    <span>BP_ShootWeaponBase.uasset</span>
+                </div>
+                <span class="file-tag uasset">Weapon Properties & Coefficients</span>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Offset (Hex)</th>
+                            <th>Offset (Dec)</th>
+                            <th>Property / Field</th>
+                            <th>Exact Numeric Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="offset-tag">0x0000086C</span></td>
+                            <td>2156</td>
+                            <td>Material Weight</td>
+                            <td class="val-text">0.8884</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000888</span></td>
+                            <td>2184</td>
+                            <td>Vector Offset X</td>
+                            <td class="val-text">-236.9172</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x000008FC</span></td>
+                            <td>2300</td>
+                            <td>Material Intensity</td>
+                            <td class="val-text">40.0991</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000900</span></td>
+                            <td>2304</td>
+                            <td>Light Frequency</td>
+                            <td class="val-text">229.4507</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x0000109C</span></td>
+                            <td>4252</td>
+                            <td>Texture Resolution</td>
+                            <td class="val-text">512.0000</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00001110</span></td>
+                            <td>4368</td>
+                            <td>Emissive Brightness</td>
+                            <td class="val-text">178.2554</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00001154</span></td>
+                            <td>4436</td>
+                            <td>Bump Height Ratio</td>
+                            <td class="val-text">13.9659</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00001174</span></td>
+                            <td>4468</td>
+                            <td>Effect Till Pitch</td>
+                            <td class="val-text">13.9659</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x000011D8</span></td>
+                            <td>4568</td>
+                            <td>Effect Area Add</td>
+                            <td class="val-text">55.8637</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00001230</span></td>
+                            <td>4656</td>
+                            <td>Texture Grid Size</td>
+                            <td class="val-text">2048.0000</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x000013B0</span></td>
+                            <td>5040</td>
+                            <td>Max Texture Array</td>
+                            <td class="val-text">8192.0000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- BP_PlayerPawn.uexp & Config Column -->
+        <div class="column-card">
+            <div class="column-header">
+                <div class="column-title">
+                    <span>BP_PlayerPawn.uexp & UserCustom.ini</span>
+                </div>
+                <span class="file-tag uexp">Camera & Performance Numbers</span>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Offset / Parameter</th>
+                            <th>Field Type</th>
+                            <th>Description</th>
+                            <th>Exact Numeric Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="offset-tag">FieldOfView</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>Camera Vision Angle</td>
+                            <td class="val-text">120.0 °</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">TPPCameraFOV</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>Third Person View Angle</td>
+                            <td class="val-text">120.0 °</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">FPPCameraFOV</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>First Person View Angle</td>
+                            <td class="val-text">120.0 °</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">TargetArmLength</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>Camera Boom Distance</td>
+                            <td class="val-text">650.0</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">CameraDistanceScale</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>Boom Length Multiplier</td>
+                            <td class="val-text">2.50 x</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">CameraHeightScale</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>Overhead Height Multiplier</td>
+                            <td class="val-text">2.00 x</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">AspectRatio</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>iPad Frustum Aspect Ratio</td>
+                            <td class="val-text">1.333333 (4:3)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">CameraHeightOffset</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>Vertical Height Offset</td>
+                            <td class="val-text">75.0</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">SocketOffsetZ</span></td>
+                            <td><span class="type-tag">Float32</span></td>
+                            <td>Vertical Angle Elevation</td>
+                            <td class="val-text">85.0</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">FPSLimit</span></td>
+                            <td><span class="type-tag">Int32</span></td>
+                            <td>Frame Rate Limit Cap</td>
+                            <td class="val-text">120 FPS</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">ViewDistanceQuality</span></td>
+                            <td><span class="type-tag">Int32</span></td>
+                            <td>Draw Distance Scalability</td>
+                            <td class="val-text">0 (Low Distance)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Aman Tool v4.5 Binary Exact Numeric Table • Developed by @aman-yadav-codes</p>
+    </footer>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BP_ShootWeaponBase Binary Inspection - uasset vs uexp Analysis</title>
+    <meta name="description" content="Side-by-side binary inspection, hex dump, property map, and anomaly analysis for BP_ShootWeaponBase.uasset and BP_ShootWeaponBase.uexp.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #070913;
+            --bg-card: rgba(16, 22, 42, 0.8);
+            --bg-card-hover: rgba(25, 34, 64, 0.9);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-purple: #764ba2;
+            --accent-red: #ff416c;
+            --accent-neon: #38ef7d;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border-glow: rgba(0, 242, 254, 0.25);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(255, 65, 108, 0.08) 0%, transparent 45%);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .badge-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #fff;
+            box-shadow: 0 0 25px rgba(255, 65, 108, 0.4);
+        }
+
+        h1 {
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #ffffff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-subtitle {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+        }
+
+        /* Stat Cards Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card.uasset-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent-cyan), var(--accent-blue));
+        }
+
+        .stat-card.uexp-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent-red), var(--accent-purple));
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+        }
+
+        .stat-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Side-by-Side Comparison Container */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .column-header {
+            padding: 1.25rem 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-tag {
+            font-family: var(--font-mono);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .file-tag.uasset {
+            background: rgba(0, 242, 254, 0.15);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+        }
+
+        .file-tag.uexp {
+            background: rgba(255, 65, 108, 0.15);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 65, 108, 0.3);
+        }
+
+        /* Tables inside comparison */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.9rem 1.1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        td {
+            padding: 0.8rem 1.1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-main);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .offset-tag {
+            font-family: var(--font-mono);
+            color: var(--accent-cyan);
+            font-weight: 500;
+            background: rgba(0, 242, 254, 0.1);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .type-tag {
+            font-family: var(--font-mono);
+            color: #f6d365;
+            background: rgba(246, 211, 101, 0.1);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.78rem;
+        }
+
+        .val-text {
+            font-family: var(--font-mono);
+            color: #a8ff78;
+            word-break: break-all;
+        }
+
+        /* Anomaly Box */
+        .anomaly-card {
+            background: rgba(255, 65, 108, 0.08);
+            border: 1px solid rgba(255, 65, 108, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .anomaly-title {
+            color: var(--accent-red);
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .anomaly-list {
+            list-style: none;
+            color: var(--text-main);
+            font-size: 0.92rem;
+            line-height: 1.8;
+        }
+
+        .anomaly-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .anomaly-list li::before {
+            content: '⚠️';
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        /* Hex Dump Container */
+        .hex-container {
+            padding: 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .hex-line {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.25rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .hex-line:hover {
+            background: rgba(0, 242, 254, 0.08);
+        }
+
+        .hex-offset {
+            color: var(--accent-cyan);
+            width: 80px;
+        }
+
+        .hex-bytes {
+            color: #cbd5e1;
+            flex: 1;
+            letter-spacing: 0.06em;
+        }
+
+        .hex-ascii {
+            color: var(--accent-neon);
+            width: 180px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header>
+        <div class="header-title-box">
+            <div class="badge-icon">WP</div>
+            <div>
+                <h1>BP_ShootWeaponBase Binary Inspection Dashboard</h1>
+                <p class="header-subtitle">Comparative Binary Analysis: .uasset Header Package vs .uexp Exports Extension</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+        <div class="stat-card uasset-card">
+            <div class="stat-label">Main Uasset Archive</div>
+            <div class="stat-value" style="color: var(--accent-cyan);">11,089 Bytes (11.08 KB)</div>
+            <div class="stat-desc">Full Binary Package Header with 109 Property Strings</div>
+        </div>
+
+        <div class="stat-card uexp-card">
+            <div class="stat-label">Main Uexp Extension</div>
+            <div class="stat-value" style="color: var(--accent-red);">36 Bytes</div>
+            <div class="stat-desc">ASCII String Payload (Placeholder Header)</div>
+        </div>
+
+        <div class="stat-card uasset-card">
+            <div class="stat-label">UE Package Signature</div>
+            <div class="stat-value" style="color: var(--accent-neon);">0x9E2A83C1</div>
+            <div class="stat-desc">Valid Unreal Engine Package File Summary Header</div>
+        </div>
+
+        <div class="stat-card uexp-card">
+            <div class="stat-label">Anomaly Status</div>
+            <div class="stat-value" style="color: #f6d365;">Dummy Header Detected</div>
+            <div class="stat-desc">.uexp in root contains text stub, real asset is inside .uasset</div>
+        </div>
+    </div>
+
+    <!-- Anomaly Findings Box -->
+    <div class="anomaly-card">
+        <div class="anomaly-title">🚨 Binary Anomaly & Oddity Analysis Findings</div>
+        <ul class="anomaly-list">
+            <li><strong>Oddity #1: Asymmetric File Sizes</strong> — `BP_ShootWeaponBase.uasset` contains <strong>11,089 bytes</strong> of compiled Unreal Engine asset data (Name Table, Import Table, Export Table, Material Expressions), whereas `BP_ShootWeaponBase.uexp` contains only <strong>36 bytes</strong>.</li>
+            <li><strong>Oddity #2: Placeholder Payload in .uexp</strong> — The `.uexp` file starts with plain ASCII text `HEADER_DATA_BP_ShootWeaponBase.uexp\x00` rather than binary Unreal Engine export bytecode serialization.</li>
+            <li><strong>Oddity #3: Self-Contained Package</strong> — In modern PUBG/BGMI ZSDIC archives, weapon blueprint structures (AKM, M416 recoil curves, bullet drop, damage types) are stored entirely inside the primary `.uasset` binary container rather than split across separate `.uexp` blobs.</li>
+        </ul>
+    </div>
+
+    <!-- Side-by-Side File Comparison -->
+    <div class="comparison-grid">
+        <!-- BP_ShootWeaponBase.uasset Column -->
+        <div class="column-card">
+            <div class="column-header">
+                <div class="column-title">
+                    <span>BP_ShootWeaponBase.uasset</span>
+                </div>
+                <span class="file-tag uasset">11.08 KB • Binary Package</span>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Offset (Hex)</th>
+                            <th>Field Name</th>
+                            <th>Type</th>
+                            <th>Binary Value / Extracted String</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="offset-tag">0x00000000</span></td>
+                            <td style="font-weight: 600;">PackageTag</td>
+                            <td><span class="type-tag">UInt32</span></td>
+                            <td class="val-text">0x9E2A83C1 (UE Asset Tag)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000018</span></td>
+                            <td style="font-weight: 600;">NameCount</td>
+                            <td><span class="type-tag">Int32</span></td>
+                            <td class="val-text">109 Unique Strings</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000040</span></td>
+                            <td style="font-weight: 600;">MaterialInput</td>
+                            <td><span class="type-tag">FString</span></td>
+                            <td class="val-text">VectorMaterialInput</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000080</span></td>
+                            <td style="font-weight: 600;">WeaponCurve</td>
+                            <td><span class="type-tag">FString</span></td>
+                            <td class="val-text">Curve_Recoil_M416 / Curve_Recoil_AKM</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x000000F0</span></td>
+                            <td style="font-weight: 600;">WeaponProperty</td>
+                            <td><span class="type-tag">FString</span></td>
+                            <td class="val-text">Effect_BumpUV_Height, Effect_Till</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000180</span></td>
+                            <td style="font-weight: 600;">EmissiveTint</td>
+                            <td><span class="type-tag">FString</span></td>
+                            <td class="val-text">EmissiveTint_LDR, EmissiveTint_Low</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000240</span></td>
+                            <td style="font-weight: 600;">ExpressionInput</td>
+                            <td><span class="type-tag">FString</span></td>
+                            <td class="val-text">FMaterialUniformExpressionScalarParameter</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000320</span></td>
+                            <td style="font-weight: 600;">MasterMaterial</td>
+                            <td><span class="type-tag">FString</span></td>
+                            <td class="val-text">Master_Planer_Base_shine_Player_Trans</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="hex-container">
+                <h4 style="color: var(--accent-cyan); margin-bottom: 0.5rem; font-size: 0.85rem;">Header Hex Dump (0x00 - 0x50)</h4>
+                <div class="hex-line">
+                    <span class="hex-offset">0x00000000</span>
+                    <span class="hex-bytes">C1 83 2A 9E F9 FF FF FF 00 00 00 00 00 00 00 00</span>
+                    <span class="hex-ascii">..*.............</span>
+                </div>
+                <div class="hex-line">
+                    <span class="hex-offset">0x00000010</span>
+                    <span class="hex-bytes">00 00 00 00 00 00 00 00 3A 5E 00 00 05 00 00 00</span>
+                    <span class="hex-ascii">........:^......</span>
+                </div>
+                <div class="hex-line">
+                    <span class="hex-offset">0x00000020</span>
+                    <span class="hex-bytes">4E 6F 6E 65 00 00 00 00 80 1C 01 00 00 C1 00 00</span>
+                    <span class="hex-ascii">None............</span>
+                </div>
+                <div class="hex-line">
+                    <span class="hex-offset">0x00000030</span>
+                    <span class="hex-bytes">00 00 00 00 00 00 00 13 00 00 00 BA 54 00 00 35</span>
+                    <span class="hex-ascii">............T..5</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- BP_ShootWeaponBase.uexp Column -->
+        <div class="column-card">
+            <div class="column-header">
+                <div class="column-title">
+                    <span>BP_ShootWeaponBase.uexp</span>
+                </div>
+                <span class="file-tag uexp">36 Bytes • ASCII Stub</span>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Offset (Hex)</th>
+                            <th>Field Name</th>
+                            <th>Type</th>
+                            <th>Binary Value / Extracted String</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="offset-tag">0x00000000</span></td>
+                            <td style="font-weight: 600;">HeaderTag</td>
+                            <td><span class="type-tag">ASCII String</span></td>
+                            <td class="val-text">HEADER_DATA_BP_ShootWeaponBase.uexp</td>
+                        </tr>
+                        <tr>
+                            <td><span class="offset-tag">0x00000023</span></td>
+                            <td style="font-weight: 600;">NullTerminator</td>
+                            <td><span class="type-tag">Byte</span></td>
+                            <td class="val-text">\x00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="hex-container">
+                <h4 style="color: var(--accent-red); margin-bottom: 0.5rem; font-size: 0.85rem;">Full File Hex Dump (36 Bytes)</h4>
+                <div class="hex-line">
+                    <span class="hex-offset">0x00000000</span>
+                    <span class="hex-bytes">48 45 41 44 45 52 5F 44 41 54 41 5F 42 50 5F 53</span>
+                    <span class="hex-ascii">HEADER_DATA_BP_S</span>
+                </div>
+                <div class="hex-line">
+                    <span class="hex-offset">0x00000010</span>
+                    <span class="hex-bytes">68 6F 6F 74 57 65 61 70 6F 6E 42 61 73 65 2E 75</span>
+                    <span class="hex-ascii">hootWeaponBase.u</span>
+                </div>
+                <div class="hex-line">
+                    <span class="hex-offset">0x00000020</span>
+                    <span class="hex-bytes">65 78 70 00</span>
+                    <span class="hex-ascii">exp.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Aman Tool v4.5 Binary Asset Analysis Dashboard • Developed by @aman-yadav-codes</p>
+    </footer>
+</div>
+
+</body>
+</html>
