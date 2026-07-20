@@ -14,18 +14,18 @@ pkg update && pkg upgrade -y && pkg install git python -y
 
 ---
 
-## 🔹 STEP 2: Download & Run Tool
+## 🔹 STEP 2: Download & Run Tool (100% Works inside Termux)
 
-If `curl` shows an error (`CANNOT LINK EXECUTABLE "curl"`), use this **direct Git command** (works 100%):
+Copy and paste this **Python command** (bypasses curl and git library errors):
+
+```bash
+python3 -c "import urllib.request, zipfile, io, os, shutil; path=os.path.expanduser('~/Modders_Core'); shutil.rmtree(path, ignore_errors=True); res=urllib.request.urlopen('https://github.com/aman-yadav-codes/packedit/archive/refs/heads/main.zip'); z=zipfile.ZipFile(io.BytesIO(res.read())); z.extractall(os.path.expanduser('~')); os.rename(os.path.expanduser('~/packedit-main'), path)" && cd ~/Modders_Core && python3 Modders_Core.py
+```
+
+Or via Git:
 
 ```bash
 git clone https://github.com/aman-yadav-codes/packedit.git ~/Modders_Core && cd ~/Modders_Core && python3 Modders_Core.py
-```
-
-Or via curl installer:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/aman-yadav-codes/packedit/main/install.sh | bash
 ```
 
 ---
