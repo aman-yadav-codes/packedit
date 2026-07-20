@@ -77,9 +77,11 @@ ALL_UE_CONTENT_FOLDERS = {
     "Arts_Effect/Materials": ["M_Effect_Base.uasset"],
     "Arts_Effect/Textures": ["T_Effect_Noise.uasset"],
     "Arts_Lobby/Materials": ["M_Lobby_Background.uasset"],
+    "Arts_Player/BluePrints/Player": ["BP_PlayerPawn.uasset", "BP_PlayerPawn.uexp", "BP_PlayerController.uasset"],
+    "Arts_PlayerBluePrints/Player": ["BP_PlayerPawn.uasset", "BP_PlayerPawn.uexp", "BP_PlayerController.uasset"],
     "Arts_Scenes/Materials": ["M_Scene_Material.uasset"],
     "Assets/Materials": ["M_Asset_Base.uasset"],
-    "BluePrints/Player": ["BP_PlayerState.uasset"],
+    "BluePrints/Player": ["BP_PlayerPawn.uasset", "BP_PlayerPawn.uexp", "BP_PlayerState.uasset"],
     "Cinematics": ["Cinematic_Intro.uasset"],
     "CSV": ["ItemConfigTable.csv"]
 }
