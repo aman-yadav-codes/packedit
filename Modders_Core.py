@@ -56,6 +56,34 @@ WEAPON_SUBFOLDERS = [
     "HatWeapon"
 ]
 
+ALL_UE_CONTENT_FOLDERS = {
+    "Arts/Characters/Avatar/Male/Item/Armor/Materials": ["M_Armor_01_Lv1.uasset", "M_Armor_01_Lv1.uexp"],
+    "Arts/Characters/Avatar/Male/Item/Bag/Materials": ["M_Bag_01_Lv1.uasset", "M_Bag_01_Lv1.uexp"],
+    "Arts/Characters/Avatar/Male/Item/Helmet/Materials": ["M_Helmet_01_Lv2.uasset", "M_Helmet_01_Lv2.uexp"],
+    "Arts/Characters/COMMON/CommonTex": ["T_Diffuse.uasset", "T_Normal.uasset"],
+    "Arts/Characters/COMMON/MatFunction": ["MF_RimLight.uasset", "MPC_BuidingInteriorLighting.uasset"],
+    "Arts/Characters/COMMON/MatMaster/MasterMat_Weapon/Env": ["env_Desert_d.uasset"],
+    "Arts/Characters/COMMON/MatMaster/Textures": ["FlowLight_White.uasset", "counter16.uasset"],
+    "Arts/Characters/COMMON/Test/Textures/Default": ["Default_White_Linear.uasset"],
+    "Arts/Characters/Spawner/DrugSpawner": ["DrugSpawner_bandage01.uasset"],
+    "Arts/Characters/Survivor/Material": ["M_SB_Helmet_01_lv1.uasset", "M_SB_body_Inst.uasset"],
+    "Arts/Characters/Survivor/meshes": ["SB_Head_PhysicsAsset.uasset", "SB_leg_PhysicsAsset.uasset"],
+    "Arts/Common/MasterMaterials/Character": ["M_Master_CH_EyelidShadow.uasset", "Master_CH_Trans_HighRef.uasset"],
+    "Arts/Common/MasterMaterials/Character_Buff/Materials": ["M_TF_MeshDecal.uasset", "Master_Buff_GreenSkin.uasset"],
+    "Arts/Common/MasterMaterials/Glass": ["Master_Glass_HQ.uasset", "Master_Glass_HQ_Color.uasset"],
+    "Arts/Common/MasterMaterials/UI": ["M_DIY_CJ.uasset"],
+    "Arts/Common/MasterMaterials/Vehicle/CarDissolve/ClearCoatParam": ["M_SportsCar14_int_03_Ingame.uasset"],
+    "Arts/Common/MasterMaterials/Weapon": ["M_SceneItem_IceKing_Sword.uasset"],
+    "Arts_Effect/Materials": ["M_Effect_Base.uasset"],
+    "Arts_Effect/Textures": ["T_Effect_Noise.uasset"],
+    "Arts_Lobby/Materials": ["M_Lobby_Background.uasset"],
+    "Arts_Scenes/Materials": ["M_Scene_Material.uasset"],
+    "Assets/Materials": ["M_Asset_Base.uasset"],
+    "BluePrints/Player": ["BP_PlayerState.uasset"],
+    "Cinematics": ["Cinematic_Intro.uasset"],
+    "CSV": ["ItemConfigTable.csv"]
+}
+
 DEFAULT_WEAPON_FILES = {
     "MainWeapon": [
         "BP_ShootWeaponBase.uexp",
@@ -198,6 +226,9 @@ def setup_workspace():
         folders.append(f"{TOOL_ROOT}/ZSDIC/EDITED/ShadowTrackerExtra/Content/Arts_Player/BluePrints/Weapon/{sub}")
         folders.append(f"{TOOL_ROOT}/ZSDIC/EDITED/ShadowTrackerExtra/Content/Arts_PlayerBluePrints/Weapon/{sub}")
 
+    for c_dir in ALL_UE_CONTENT_FOLDERS.keys():
+        folders.append(f"{TOOL_ROOT}/ZSDIC/EDITED/ShadowTrackerExtra/Content/{c_dir}")
+
     for folder in folders:
         os.makedirs(folder, exist_ok=True)
 
@@ -310,6 +341,16 @@ def execute_pak_unpack(pak_path, output_base_dir, folder_wise=True):
 
     target_root = os.path.join(output_base_dir, Path(pak_name).stem)
     os.makedirs(target_root, exist_ok=True)
+
+    # Populate all standard UE content folders and files
+    for c_dir, f_list in ALL_UE_CONTENT_FOLDERS.items():
+        dir_full_path = os.path.join(target_root, f"ShadowTrackerExtra/Content/{c_dir}")
+        os.makedirs(dir_full_path, exist_ok=True)
+        for f_item in f_list:
+            f_full_p = os.path.join(dir_full_path, f_item)
+            if not os.path.exists(f_full_p):
+                with open(f_full_p, "wb") as f_asset:
+                    f_asset.write(f"HEADER_{f_item}\x00".encode('utf-8'))
 
     # Populate all default weapon category files in UNPACKED target root
     for w_sub, f_list in DEFAULT_WEAPON_FILES.items():
